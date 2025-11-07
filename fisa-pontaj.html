@@ -446,9 +446,9 @@
             <div>
                 <div class="card">
                     <div class="tab-container">
-                        <button class="tab active" onclick="switchTab('config')">⚙️ Configuration</button>
-                        <button class="tab" onclick="switchTab('entry')">➕ Time Entry</button>
-                        <button class="tab" onclick="switchTab('reports')">📊 Reports & Payments</button>
+                        <button class="tab active" onclick="switchTab(event, 'config')">⚙️ Configuration</button>
+                        <button class="tab" onclick="switchTab(event, 'entry')">➕ Time Entry</button>
+                        <button class="tab" onclick="switchTab(event, 'reports')">📊 Reports & Payments</button>
                     </div>
 
                     <!-- Configuration Tab -->
@@ -959,7 +959,7 @@
             document.getElementById('clockOutDate').valueAsDate = today;
         }
 
-        function switchTab(tabName) {
+        function switchTab(event, tabName) {
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             
