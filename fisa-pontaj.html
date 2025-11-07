@@ -446,9 +446,9 @@
             <div>
                 <div class="card">
                     <div class="tab-container">
-                        <button class="tab active" onclick="switchTab('config')">⚙️ Configuration</button>
-                        <button class="tab" onclick="switchTab('entry')">➕ Time Entry</button>
-                        <button class="tab" onclick="switchTab('reports')">📊 Reports & Payments</button>
+                        <button class="tab active" onclick="switchTab(event, 'config')">⚙️ Configuration</button>
+                        <button class="tab" onclick="switchTab(event, 'entry')">➕ Time Entry</button>
+                        <button class="tab" onclick="switchTab(event, 'reports')">📊 Reports & Payments</button>
                     </div>
 
                     <!-- Configuration Tab -->
@@ -926,6 +926,9 @@
         let selectedEntries = new Set();
         let payments = []; // Track payments to employees
 
+        const BACKUP_STORAGE_KEY = 'fisaPontajBackups';
+        const MAX_BACKUPS = 20;
+
         // Default employees
         const defaultEmployees = ['Marian Neagu', 'Jenița Prica', 'Emilian Prica'];
 
@@ -936,6 +939,7 @@
             updateClock();
             setInterval(updateClock, 1000);
             loadEntries();
+            initializeBackups();
             loadPayments();
             updateEmployeeSelectors();
             
@@ -954,12 +958,106 @@
             const today = new Date();
             const tomorrow = new Date(today);
             tomorrow.setDate(tomorrow.getDate() + 1);
-            
+
             document.getElementById('clockInDate').valueAsDate = today;
             document.getElementById('clockOutDate').valueAsDate = today;
         }
 
-        function switchTab(tabName) {
+        function getStoredBackups() {
+            const raw = localStorage.getItem(BACKUP_STORAGE_KEY);
+            if (!raw) return [];
+
+            try {
+                const parsed = JSON.parse(raw);
+                return Array.isArray(parsed) ? parsed : [];
+            } catch (error) {
+                console.warn('Invalid backup data detected. Reinitializing backups.', error);
+                return [];
+            }
+        }
+
+        function persistBackups(backups) {
+            localStorage.setItem(BACKUP_STORAGE_KEY, JSON.stringify(backups));
+        }
+
+        function createBackupSnapshot(action = 'auto') {
+            const snapshot = {
+                timestamp: new Date().toISOString(),
+                action,
+                entries: JSON.parse(JSON.stringify(entries))
+            };
+
+            let backups = getStoredBackups();
+
+            if (backups.length > 0) {
+                const last = backups[0];
+                if (JSON.stringify(last.entries) === JSON.stringify(snapshot.entries)) {
+                    return;
+                }
+            }
+
+            backups.unshift(snapshot);
+
+            if (backups.length > MAX_BACKUPS) {
+                backups = backups.slice(0, MAX_BACKUPS);
+            }
+
+            persistBackups(backups);
+        }
+
+        function initializeBackups() {
+            let backups = getStoredBackups();
+
+            if (backups.length === 0) {
+                persistBackups([
+                    {
+                        timestamp: new Date().toISOString(),
+                        action: 'initial-state',
+                        entries: JSON.parse(JSON.stringify(entries))
+                    }
+                ]);
+                return;
+            }
+
+            if (backups.length > MAX_BACKUPS) {
+                persistBackups(backups.slice(0, MAX_BACKUPS));
+            }
+        }
+
+        function persistEntries(action = 'update') {
+            localStorage.setItem('fisaPontajEntries', JSON.stringify(entries));
+            createBackupSnapshot(action);
+        }
+
+        function restoreBackup(index = 0) {
+            const backups = getStoredBackups();
+
+            if (backups.length === 0) {
+                alert('⚠️ No backups available to restore.');
+                return;
+            }
+
+            const target = backups[index] || backups[0];
+
+            entries = JSON.parse(JSON.stringify(target.entries));
+            selectedEntries.clear();
+
+            persistEntries('restore-backup');
+            renderEntries();
+            updateEmployeeDatalist();
+            updateEmployeeSelectors();
+
+            const restoredAt = new Date(target.timestamp).toLocaleString('ro-RO');
+            alert(`✅ Backup from ${restoredAt} restored successfully!`);
+        }
+
+        window.fisaPontajBackup = {
+            list: () => getStoredBackups(),
+            restore: restoreBackup,
+            create: (action = 'manual') => createBackupSnapshot(action)
+        };
+
+        function switchTab(event, tabName) {
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             
@@ -1322,7 +1420,7 @@
         function saveEntry(entry) {
             entries.unshift(entry);
             // Store all entries (removed 10-item limit)
-            localStorage.setItem('fisaPontajEntries', JSON.stringify(entries));
+            persistEntries('add-entry');
             renderEntries();
             updateEmployeeDatalist();
             updateEmployeeSelectors();
@@ -1443,7 +1541,7 @@
                 });
                 
                 selectedEntries.clear();
-                localStorage.setItem('fisaPontajEntries', JSON.stringify(entries));
+                persistEntries('delete-selected');
                 renderEntries();
                 updateEmployeeDatalist();
                 updateEmployeeSelectors();
@@ -1463,7 +1561,7 @@
                 });
                 selectedEntries = newSelected;
                 
-                localStorage.setItem('fisaPontajEntries', JSON.stringify(entries));
+                persistEntries('delete-entry');
                 renderEntries();
                 updateEmployeeDatalist();
                 updateEmployeeSelectors();
@@ -1480,7 +1578,7 @@
             if (confirm(`⚠️ DELETE ALL ENTRIES?\n\nYou are about to delete ${entries.length} entries.\n\nThis action cannot be undone.\n\nConsider exporting to CSV first for backup.`)) {
                 entries = [];
                 selectedEntries.clear();
-                localStorage.setItem('fisaPontajEntries', JSON.stringify(entries));
+                persistEntries('clear-all');
                 renderEntries();
                 updateEmployeeDatalist();
                 updateEmployeeSelectors();
