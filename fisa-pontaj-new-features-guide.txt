@@ -1,0 +1,195 @@
+# Fișă Pontaj - New Features Guide
+
+## ✅ FIXED: Delete Functionality
+
+The delete button now works properly! Each entry has a delete button that:
+- Uses proper event handling (not inline onclick)
+- Shows confirmation before deleting
+- Successfully removes the entry
+- Updates all displays automatically
+
+---
+
+## 🆕 NEW FEATURES
+
+### 1. ☑️ CHECKBOX MULTI-SELECT DELETION
+
+**How to use:**
+1. Check the boxes next to entries you want to delete
+2. Click "🗑️ Delete Selected (X)" button
+3. Confirm deletion
+4. All selected entries are removed at once
+
+**Select All:**
+- Use the "Select All" checkbox to select/deselect all entries at once
+
+**Benefits:**
+- Delete multiple entries efficiently
+- Clear a week's worth of data quickly
+- Safer than "Clear All" for partial deletion
+
+---
+
+### 2. 📊 EMPLOYEE REPORTS
+
+**Location:** New "Reports & Payments" tab
+
+**Features:**
+- **Employee Selector**: Choose any employee to view their report
+- **Summary Statistics**:
+  - Total entries (number of work sessions)
+  - Total hours worked
+  - Total pay earned
+- **Financial Summary**:
+  - Total Earned: Sum of all pay from work entries
+  - Total Paid: Sum of all advances/payments made
+  - Balance Due: Outstanding amount owed to employee
+- **Work History**: Detailed list of all shifts with dates, times, and pay
+
+**How to use:**
+1. Go to "Reports & Payments" tab
+2. Select employee from dropdown
+3. View complete report instantly
+
+**Use cases:**
+- Check how much you owe each employee
+- Review work patterns and hours
+- Prepare payroll information
+
+---
+
+### 3. 💰 PAYMENT TRACKING SYSTEM
+
+**Purpose:** Track all money paid to employees (advances, partial payments, final payments)
+
+**Record a Payment:**
+1. Go to "Reports & Payments" tab
+2. Scroll to "Record Payment / Advance" section
+3. Fill in:
+   - Employee Name (select from dropdown)
+   - Date (when payment was made)
+   - Amount (in RON)
+   - Payment Type:
+     - **Advance Payment**: Money paid before work is done
+     - **Final Payment**: Complete settlement
+     - **Partial Payment**: Part of what's owed
+   - Notes (optional): e.g., "Cash payment, week 1-2"
+4. Click "💰 Record Payment"
+
+**Payment History:**
+- All payments are listed below the form
+- Shows employee name, date, amount, type, and notes
+- Can delete payment records if entered incorrectly
+
+**Integration with Reports:**
+- Payment totals automatically appear in employee reports
+- Balance Due = Total Earned - Total Paid
+- See exactly what you still owe each employee
+
+---
+
+### 4. 👥 DEFAULT EMPLOYEES
+
+**Pre-configured employees:**
+- Marian Neagu
+- Jenița Prica
+- Emilian Prica
+
+**Benefits:**
+- These names appear in all dropdowns automatically
+- Available in autocomplete when typing
+- Makes data entry faster
+- Consistent spelling across all entries
+
+**Adding more employees:**
+- Just type a new name in any time entry
+- It will be added to the system automatically
+
+---
+
+## 🎯 COMMON WORKFLOWS
+
+### Workflow 1: Weekly Payroll
+1. Export all entries to CSV for records
+2. Go to "Reports & Payments" tab
+3. Check each employee's report:
+   - Marian Neagu → Balance Due: 850 RON
+   - Jenița Prica → Balance Due: 920 RON
+   - Emilian Prica → Balance Due: 780 RON
+4. Pay employees
+5. Record each payment in the system
+6. Reports now show updated balances
+
+### Workflow 2: Clean Up Old Entries
+1. Go to entries list
+2. Use "Select All" checkbox
+3. Click "🗑️ Delete Selected"
+4. Or select specific dates and delete just those
+
+### Workflow 3: Check Employee Status
+1. Go to "Reports & Payments" tab
+2. Select employee
+3. See:
+   - How many hours they've worked
+   - Total earned
+   - How much already paid
+   - Current balance owed
+
+### Workflow 4: Track Advances
+Scenario: Employee needs money before payday
+1. Record the advance payment in system
+2. Employee report immediately updates
+3. When payday comes, you see reduced balance
+4. Pay only the difference
+
+---
+
+## 📋 SUMMARY OF ALL UPDATES
+
+**Fixed:**
+✅ Delete button now works correctly
+✅ Default configuration: 18.75 RON/h, 60 min break, 09:30-18:30
+
+**New:**
+✅ Checkbox multi-select for bulk deletion
+✅ Employee reporting with work history
+✅ Financial tracking (earned vs. paid)
+✅ Payment recording system
+✅ Default employees (Marian, Jenița, Emilian)
+✅ Balance calculation (amount owed)
+✅ Payment history log
+
+**Enhanced:**
+✅ Better employee management
+✅ Complete financial tracking
+✅ Professional payroll workflow
+
+---
+
+## 💡 TIPS
+
+**Backup Before Clearing:**
+- Always export to CSV before bulk deletions
+- Keep monthly exports for records
+
+**Track Advances:**
+- Record every payment, even small advances
+- Use notes field for reference
+- Check balance before payday
+
+**Use Reports:**
+- Review employee reports weekly
+- Verify hours are correct
+- Check for any missed entries
+
+**Multi-Select Deletion:**
+- Faster than one-by-one deletion
+- Safer than "Clear All"
+- Can select specific date ranges
+
+---
+
+**System Version:** Fișă Pontaj v3.0
+**Date Format:** DD/MM/YY
+**Currency:** RON
+**Compliance:** Romanian Labor Code

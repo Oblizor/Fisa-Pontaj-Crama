@@ -1,0 +1,2056 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fișă Pontaj - Romanian Payroll Timekeeper</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #333;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #c9302c 0%, #e74c3c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 0.95em;
+            opacity: 0.95;
+        }
+
+        .status-bar {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 12px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #2ecc71;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 25px;
+            border: 2px solid #e9ecef;
+        }
+
+        .card-title {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #c9302c;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-size: 0.95em;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ced4da;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #c9302c;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: #c9302c;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #a02622;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(201, 48, 44, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 5px solid #c9302c;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .result-row:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .result-value {
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .total-row {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.2em;
+        }
+
+        .total-row .result-value {
+            color: #c9302c;
+            font-size: 1.3em;
+        }
+
+        .compliance-status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+
+        .compliance-status.warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+        }
+
+        .compliance-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+        }
+
+        .compliance-icon {
+            font-size: 1.2em;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+
+        .help-text {
+            font-size: 0.85em;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .employees-list {
+            margin-top: 20px;
+        }
+
+        .employee-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .employee-info {
+            flex: 1;
+        }
+
+        .employee-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .employee-time {
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+
+        .employee-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .icon-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .summary-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+        }
+
+        .summary-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: #c9302c;
+            margin: 10px 0;
+        }
+
+        .summary-label {
+            font-size: 0.9em;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .night-indicator {
+            display: inline-block;
+            background: #2c3e50;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .config-grid,
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .tab-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: #c9302c;
+            border-bottom-color: #c9302c;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .legal-reference {
+            font-size: 0.85em;
+            color: #6c757d;
+            font-style: italic;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 FIȘĂ PONTAJ</h1>
+            <p>Romanian Payroll Timekeeper | Compliance Mode: Active | Currency: RON</p>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-indicator"></div>
+                <span>System Active</span>
+            </div>
+            <div class="status-item">
+                ⚖️ Codul Muncii Compliance
+            </div>
+            <div class="status-item">
+                🕐 <span id="current-time"></span>
+            </div>
+            <div class="status-item">
+                💰 Currency: RON
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Left Column: Configuration & Time Entry -->
+            <div>
+                <div class="card">
+                    <div class="tab-container">
+                        <button class="tab active" onclick="switchTab('config')">⚙️ Configuration</button>
+                        <button class="tab" onclick="switchTab('entry')">➕ Time Entry</button>
+                        <button class="tab" onclick="switchTab('reports')">📊 Reports & Payments</button>
+                    </div>
+
+                    <!-- Configuration Tab -->
+                    <div id="config-tab" class="tab-content active">
+                        <div class="alert alert-info">
+                            <strong>Admin Controls:</strong> Configure all wage rates and premiums below. All values in RON.
+                        </div>
+
+                        <div class="config-grid">
+                            <div class="form-group">
+                                <label>Base Wage Rate (RON/hour)</label>
+                                <input type="number" id="baseRate" value="18.75" step="0.01" min="0">
+                                <div class="help-text">Standard hourly rate for regular hours</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Night Premium (%)</label>
+                                <input type="number" id="nightPremium" value="25" step="1" min="25">
+                                <div class="legal-reference">Legal minimum: 25% (Art. 124)</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Overtime Premium (%)</label>
+                                <input type="number" id="overtimePremium" value="75" step="1" min="0">
+                                <div class="help-text">Additional premium for overtime hours</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Standard Break (minutes)</label>
+                                <input type="number" id="breakDuration" value="60" step="1" min="0">
+                                <div class="legal-reference">Minimum 30 min after 6h (Art. 102)</div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 25px; padding-top: 25px; border-top: 2px solid #e9ecef;">
+                            <h4 style="color: #2c3e50; margin-bottom: 15px;">⏰ Default Full Day Shift Configuration</h4>
+                            <div class="help-text" style="margin-bottom: 15px;">Set your standard work hours. These will be used as defaults when creating new entries.</div>
+                            
+                            <div class="config-grid">
+                                <div class="form-group">
+                                    <label>Default Start Time</label>
+                                    <input type="time" id="defaultStartTime" value="09:30" step="60">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Default End Time</label>
+                                    <input type="time" id="defaultEndTime" value="18:30" step="60">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Default Lunch Break (minutes)</label>
+                                    <input type="number" id="defaultLunchBreak" value="60" step="1" min="0">
+                                </div>
+                            </div>
+
+                            <button class="btn btn-success" onclick="applyDefaultShift()" style="margin-top: 10px;">
+                                ⚡ Apply Default to Current Entry
+                            </button>
+                        </div>
+
+                        <div class="btn-group">
+                            <button class="btn btn-success" onclick="saveConfiguration()">💾 Save Configuration</button>
+                            <button class="btn btn-secondary" onclick="resetConfiguration()">🔄 Reset to Defaults</button>
+                        </div>
+                    </div>
+
+                    <!-- Time Entry Tab -->
+                    <div id="entry-tab" class="tab-content">
+                        <div class="alert alert-info">
+                            <strong>💡 Tip:</strong> Configure your default shift times in the Configuration tab, then use "Load Defaults" or "Bulk Entry" for faster data entry.
+                        </div>
+
+                        <div class="form-group">
+                            <button class="btn btn-success" onclick="applyDefaultShift()" style="width: 100%;">
+                                ⚡ Load Default Shift Times
+                            </button>
+                            <div class="help-text">Loads your configured default times (set in Configuration tab)</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Employee Name</label>
+                            <input type="text" id="employeeName" placeholder="Enter employee name" list="employeeDatalist">
+                            <datalist id="employeeDatalist"></datalist>
+                            <div class="help-text">Start typing to see previous employees</div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Clock-In Date</label>
+                                <input type="date" id="clockInDate">
+                            </div>
+                            <div class="form-group">
+                                <label>Clock-In Time</label>
+                                <input type="time" id="clockInTime" step="60">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Clock-Out Date</label>
+                                <input type="date" id="clockOutDate">
+                            </div>
+                            <div class="form-group">
+                                <label>Clock-Out Time</label>
+                                <input type="time" id="clockOutTime" step="60">
+                            </div>
+                        </div>
+
+                        <!-- Multiple Breaks -->
+                        <div class="form-group">
+                            <label>Break 1 - Main Break (minutes)</label>
+                            <input type="number" id="entryBreak1" value="60" step="1" min="0">
+                            <div class="help-text">Standard meal/rest break (e.g., 60 min)</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Break 2 - Additional Break (minutes) <span style="color: #6c757d;">[Optional]</span></label>
+                            <input type="number" id="entryBreak2" value="0" step="1" min="0">
+                            <div class="help-text">Extra break, smoking break, or second meal break</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Break 3 - Extended Break (minutes) <span style="color: #6c757d;">[Optional]</span></label>
+                            <input type="number" id="entryBreak3" value="0" step="1" min="0">
+                            <div class="help-text">For extended shifts or special circumstances</div>
+                        </div>
+
+                        <div class="alert alert-warning" id="midnightAlert" style="display: none;">
+                            ⚠️ <strong>Midnight Crossing Detected:</strong> Ensure clock-out date is correct for overnight shifts.
+                        </div>
+
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="calculatePay()">🧮 Calculate & Save</button>
+                            <button class="btn btn-success" onclick="repeatLast()">🔄 Repeat Last</button>
+                            <button class="btn btn-secondary" onclick="clearEntry()">🗑️ Clear</button>
+                        </div>
+
+                        <!-- Enhanced Bulk Entry Mode -->
+                        <div style="margin-top: 25px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; color: white;">
+                            <h4 style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                                📊 BULK ENTRY MODE
+                                <span style="font-size: 0.75em; background: rgba(255,255,255,0.3); padding: 4px 8px; border-radius: 4px;">Multiple Days at Once</span>
+                            </h4>
+                            <p style="font-size: 0.9em; opacity: 0.95; margin-bottom: 15px;">
+                                Fill in the shift details above, then use bulk entry to create multiple consecutive entries automatically.
+                            </p>
+                            
+                            <div style="background: rgba(255,255,255,0.15); padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+                                <div class="form-group" style="margin-bottom: 15px;">
+                                    <label style="color: white; font-weight: 600;">Number of Days to Create</label>
+                                    <input type="number" id="bulkDays" value="5" min="1" max="31" step="1" style="background: white;">
+                                    <div style="font-size: 0.85em; margin-top: 5px; opacity: 0.9;">
+                                        Creates entries for consecutive days starting from the Clock-In Date above
+                                    </div>
+                                </div>
+                                
+                                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; background: rgba(255,255,255,0.2); padding: 12px; border-radius: 6px;">
+                                    <input type="checkbox" id="skipWeekends" checked style="width: 20px; height: 20px; cursor: pointer;">
+                                    <span style="font-weight: 600;">Skip Weekends (Saturday & Sunday)</span>
+                                </label>
+                            </div>
+                            
+                            <button class="btn" onclick="processBulkEntryDirect()" style="width: 100%; background: white; color: #667eea; font-weight: 700; font-size: 1.1em; padding: 15px;">
+                                🚀 CREATE BULK ENTRIES
+                            </button>
+                            
+                            <div style="font-size: 0.85em; margin-top: 10px; opacity: 0.9; text-align: center;">
+                                Example: Enter times once, set to 5 days, create a week of entries instantly
+                            </div>
+                        </div>
+
+                        <!-- Export/Import Section -->
+                        <div style="margin-top: 25px; padding: 20px; background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); border-radius: 8px; color: white;">
+                            <h4 style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                                📁 EXPORT / IMPORT DATA
+                                <span style="font-size: 0.75em; background: rgba(255,255,255,0.3); padding: 4px 8px; border-radius: 4px;">CSV Format</span>
+                            </h4>
+                            
+                            <div style="background: rgba(255,255,255,0.15); padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+                                <h5 style="margin-bottom: 10px; font-size: 1em;">📥 Import from CSV Template</h5>
+                                <p style="font-size: 0.9em; opacity: 0.95; margin-bottom: 10px;">
+                                    Download the template, fill it in Excel/Sheets, then import it back.
+                                </p>
+                                
+                                <div class="btn-group" style="margin-bottom: 15px;">
+                                    <button class="btn" onclick="downloadTemplate()" style="flex: 1; background: white; color: #11998e; font-weight: 600;">
+                                        📋 Download CSV Template
+                                    </button>
+                                    <button class="btn" onclick="document.getElementById('csvFileInput').click()" style="flex: 1; background: white; color: #11998e; font-weight: 600;">
+                                        📤 Upload Filled CSV
+                                    </button>
+                                </div>
+                                <input type="file" id="csvFileInput" accept=".csv" style="display: none;" onchange="importCSV(event)">
+                                
+                                <div style="font-size: 0.85em; opacity: 0.9; background: rgba(255,255,255,0.2); padding: 10px; border-radius: 4px;">
+                                    <strong>📝 Template Format:</strong><br>
+                                    Date format: <strong>DD/MM/YY</strong> (e.g., 07/11/24)<br>
+                                    Time format: <strong>HH:MM</strong> (e.g., 09:30)
+                                </div>
+                            </div>
+                            
+                            <div style="background: rgba(255,255,255,0.15); padding: 15px; border-radius: 6px;">
+                                <h5 style="margin-bottom: 10px; font-size: 1em;">📤 Export Current Entries</h5>
+                                <p style="font-size: 0.9em; opacity: 0.95; margin-bottom: 10px;">
+                                    Download all your entries as CSV for backup or reporting.
+                                </p>
+                                <button class="btn" onclick="exportToCSV()" style="width: 100%; background: white; color: #11998e; font-weight: 700; font-size: 1.05em; padding: 12px;">
+                                    💾 Export All Entries to CSV
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reports & Payments Tab -->
+                    <div id="reports-tab" class="tab-content">
+                        <div class="alert alert-info">
+                            <strong>📊 Employee Reports & Payment Tracking</strong><br>
+                            View detailed reports per employee and track payments/advances.
+                        </div>
+
+                        <!-- Employee Selector for Reports -->
+                        <div class="form-group">
+                            <label>Select Employee for Report</label>
+                            <select id="reportEmployeeSelect" onchange="generateEmployeeReport()">
+                                <option value="">-- Select Employee --</option>
+                            </select>
+                            <div class="help-text">Choose an employee to see their complete work history and totals</div>
+                        </div>
+
+                        <!-- Employee Report Display -->
+                        <div id="employeeReportContainer" style="display: none;">
+                            <div style="background: white; border-radius: 8px; padding: 20px; margin-top: 20px; border: 2px solid #c9302c;">
+                                <h3 style="color: #2c3e50; margin-bottom: 15px;" id="reportEmployeeName">Employee Report</h3>
+                                
+                                <div class="summary-grid" style="margin-bottom: 20px;">
+                                    <div class="summary-box">
+                                        <div class="summary-label">Total Entries</div>
+                                        <div class="summary-value" id="reportTotalEntries">0</div>
+                                    </div>
+                                    <div class="summary-box">
+                                        <div class="summary-label">Total Hours</div>
+                                        <div class="summary-value" id="reportTotalHours">0.00</div>
+                                    </div>
+                                    <div class="summary-box">
+                                        <div class="summary-label">Total Pay</div>
+                                        <div class="summary-value" id="reportTotalPay" style="color: #28a745;">0.00 RON</div>
+                                    </div>
+                                </div>
+
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                        <span style="font-weight: 600;">Total Earned:</span>
+                                        <span style="font-size: 1.2em; font-weight: 700; color: #28a745;" id="reportEarned">0.00 RON</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                        <span style="font-weight: 600;">Total Paid (Advances):</span>
+                                        <span style="font-size: 1.2em; font-weight: 700; color: #dc3545;" id="reportPaid">0.00 RON</span>
+                                    </div>
+                                    <hr style="margin: 15px 0; border: none; border-top: 2px solid #dee2e6;">
+                                    <div style="display: flex; justify-content: space-between;">
+                                        <span style="font-weight: 700; font-size: 1.1em;">Balance Due:</span>
+                                        <span style="font-size: 1.4em; font-weight: 700; color: #c9302c;" id="reportBalance">0.00 RON</span>
+                                    </div>
+                                </div>
+
+                                <h4 style="margin-top: 20px; margin-bottom: 10px;">Work History</h4>
+                                <div id="employeeWorkHistory" style="max-height: 300px; overflow-y: auto;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Tracking Section -->
+                        <div style="margin-top: 30px; padding: 20px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 8px; color: white;">
+                            <h4 style="margin-bottom: 15px;">💰 Record Payment / Advance</h4>
+                            <p style="font-size: 0.9em; opacity: 0.95; margin-bottom: 15px;">
+                                Track money paid to employees as advances or final payments.
+                            </p>
+                            
+                            <div style="background: rgba(255,255,255,0.15); padding: 15px; border-radius: 6px;">
+                                <div class="form-group">
+                                    <label style="color: white; font-weight: 600;">Employee Name</label>
+                                    <select id="paymentEmployee" style="background: white;">
+                                        <option value="">-- Select Employee --</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label style="color: white; font-weight: 600;">Date</label>
+                                        <input type="date" id="paymentDate" style="background: white;">
+                                    </div>
+                                    <div class="form-group">
+                                        <label style="color: white; font-weight: 600;">Amount (RON)</label>
+                                        <input type="number" id="paymentAmount" step="0.01" min="0" placeholder="0.00" style="background: white;">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label style="color: white; font-weight: 600;">Payment Type</label>
+                                    <select id="paymentType" style="background: white;">
+                                        <option value="advance">Advance Payment</option>
+                                        <option value="final">Final Payment</option>
+                                        <option value="partial">Partial Payment</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label style="color: white; font-weight: 600;">Notes (Optional)</label>
+                                    <input type="text" id="paymentNotes" placeholder="e.g., Cash payment, week 1-2" style="background: white;">
+                                </div>
+
+                                <button class="btn" onclick="recordPayment()" style="width: 100%; background: white; color: #f5576c; font-weight: 700; font-size: 1.05em; padding: 12px;">
+                                    💰 Record Payment
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Payment History -->
+                        <div style="margin-top: 20px;">
+                            <h4 style="color: #2c3e50; margin-bottom: 15px;">Payment History</h4>
+                            <div id="paymentHistoryList"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Entries -->
+                <div class="card" style="margin-top: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <div class="card-title" style="margin: 0;">📊 All Entries (<span id="entriesCount">0</span>)</div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-secondary" onclick="deleteSelected()" id="deleteSelectedBtn" style="padding: 8px 15px; font-size: 0.9em; display: none;">
+                                🗑️ Delete Selected (<span id="selectedCount">0</span>)
+                            </button>
+                            <button class="btn btn-secondary" onclick="clearAllEntries()" style="padding: 8px 15px; font-size: 0.9em;">
+                                🗑️ Clear All
+                            </button>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()">
+                            <span style="font-weight: 600;">Select All</span>
+                        </label>
+                    </div>
+                    <div class="employees-list" id="employeesList" style="max-height: 500px; overflow-y: auto;">
+                        <p style="text-align: center; color: #6c757d; padding: 20px;">No entries yet. Add a time entry to begin.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Results & Compliance -->
+            <div>
+                <div class="card">
+                    <div class="card-title">💰 Pay Calculation Results</div>
+                    
+                    <div id="resultsContainer" style="display: none;">
+                        <div class="summary-grid">
+                            <div class="summary-box">
+                                <div class="summary-label">Total Hours</div>
+                                <div class="summary-value" id="totalHours">0.00</div>
+                            </div>
+                            <div class="summary-box">
+                                <div class="summary-label">Night Hours</div>
+                                <div class="summary-value" id="nightHours">0.00</div>
+                            </div>
+                            <div class="summary-box">
+                                <div class="summary-label">Regular Hours</div>
+                                <div class="summary-value" id="regularHours">0.00</div>
+                            </div>
+                        </div>
+
+                        <div class="result-card">
+                            <div class="result-row">
+                                <span class="result-label">Clock-In:</span>
+                                <span class="result-value" id="displayClockIn">-</span>
+                            </div>
+                            <div class="result-row">
+                                <span class="result-label">Clock-Out:</span>
+                                <span class="result-value" id="displayClockOut">-</span>
+                            </div>
+                            <div class="result-row">
+                                <span class="result-label">Total Time:</span>
+                                <span class="result-value" id="displayTotalTime">-</span>
+                            </div>
+                            <div class="result-row">
+                                <span class="result-label">Break Deducted:</span>
+                                <span class="result-value" id="displayBreak">-</span>
+                            </div>
+                            <div class="result-row">
+                                <span class="result-label">Net Worked Hours:</span>
+                                <span class="result-value" id="displayWorkedHours">-</span>
+                            </div>
+                        </div>
+
+                        <div class="result-card" style="margin-top: 20px;">
+                            <div class="result-row">
+                                <span class="result-label">Base Rate:</span>
+                                <span class="result-value" id="displayBaseRate">-</span>
+                            </div>
+                            <div class="result-row">
+                                <span class="result-label">Night Rate (with premium):</span>
+                                <span class="result-value" id="displayNightRate">-</span>
+                            </div>
+                            <div class="result-row">
+                                <span class="result-label">Regular Pay:</span>
+                                <span class="result-value" id="displayRegularPay">-</span>
+                            </div>
+                            <div class="result-row">
+                                <span class="result-label">Night Premium Pay:</span>
+                                <span class="result-value" id="displayNightPay">-</span>
+                            </div>
+                            <div class="total-row">
+                                <span class="result-label">TOTAL GROSS PAY:</span>
+                                <span class="result-value" id="displayTotalPay">-</span>
+                            </div>
+                        </div>
+
+                        <div id="complianceContainer"></div>
+                    </div>
+
+                    <div id="noResults" style="text-align: center; padding: 40px; color: #6c757d;">
+                        <div style="font-size: 3em; margin-bottom: 20px;">📋</div>
+                        <p>Enter time data and calculate to see results</p>
+                    </div>
+                </div>
+
+                <!-- Compliance Guide -->
+                <div class="card" style="margin-top: 20px;">
+                    <div class="card-title">⚖️ Compliance Reference</div>
+                    
+                    <div class="compliance-item">
+                        <span class="compliance-icon">📘</span>
+                        <div>
+                            <strong>Art. 102:</strong> Minimum 30-minute break after 6 consecutive hours
+                        </div>
+                    </div>
+                    
+                    <div class="compliance-item">
+                        <span class="compliance-icon">🌙</span>
+                        <div>
+                            <strong>Art. 124:</strong> Night work (22:00-06:00) requires minimum 25% premium
+                        </div>
+                    </div>
+                    
+                    <div class="compliance-item">
+                        <span class="compliance-icon">⏰</span>
+                        <div>
+                            <strong>Art. 120:</strong> Standard workweek is 40 hours (5 days × 8 hours)
+                        </div>
+                    </div>
+                    
+                    <div class="compliance-item">
+                        <span class="compliance-icon">😴</span>
+                        <div>
+                            <strong>Art. 111:</strong> Minimum 12-hour rest period between shifts
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global configuration
+        let config = {
+            baseRate: 18.75,
+            nightPremium: 25,
+            overtimePremium: 75,
+            breakDuration: 60,
+            defaultStartTime: '09:30',
+            defaultEndTime: '18:30',
+            defaultLunchBreak: 60
+        };
+
+        let entries = [];
+        let selectedEntries = new Set();
+        let payments = []; // Track payments to employees
+
+        // Default employees
+        const defaultEmployees = ['Marian Neagu', 'Jenița Prica', 'Emilian Prica'];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadConfiguration();
+            setDefaultDates();
+            updateClock();
+            setInterval(updateClock, 1000);
+            loadEntries();
+            loadPayments();
+            updateEmployeeSelectors();
+            
+            // Set today's date for payment form
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('paymentDate').value = today;
+        });
+
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('ro-RO');
+            document.getElementById('current-time').textContent = timeString;
+        }
+
+        function setDefaultDates() {
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            
+            document.getElementById('clockInDate').valueAsDate = today;
+            document.getElementById('clockOutDate').valueAsDate = today;
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+        }
+
+        function saveConfiguration() {
+            const baseRate = parseFloat(document.getElementById('baseRate').value);
+            const nightPremium = parseFloat(document.getElementById('nightPremium').value);
+            const overtimePremium = parseFloat(document.getElementById('overtimePremium').value);
+            const breakDuration = parseInt(document.getElementById('breakDuration').value);
+            const defaultStartTime = document.getElementById('defaultStartTime').value;
+            const defaultEndTime = document.getElementById('defaultEndTime').value;
+            const defaultLunchBreak = parseInt(document.getElementById('defaultLunchBreak').value);
+
+            if (nightPremium < 25) {
+                alert('⚠️ COMPLIANCE ALERT: Night premium cannot be below 25% (Art. 124, Codul Muncii)');
+                document.getElementById('nightPremium').value = 25;
+                return;
+            }
+
+            config = { 
+                baseRate, 
+                nightPremium, 
+                overtimePremium, 
+                breakDuration,
+                defaultStartTime,
+                defaultEndTime,
+                defaultLunchBreak
+            };
+            localStorage.setItem('fisaPontajConfig', JSON.stringify(config));
+            
+            alert('✅ Configuration saved successfully!');
+        }
+
+        function loadConfiguration() {
+            const saved = localStorage.getItem('fisaPontajConfig');
+            if (saved) {
+                config = JSON.parse(saved);
+                document.getElementById('baseRate').value = config.baseRate;
+                document.getElementById('nightPremium').value = config.nightPremium;
+                document.getElementById('overtimePremium').value = config.overtimePremium;
+                document.getElementById('breakDuration').value = config.breakDuration;
+                document.getElementById('defaultStartTime').value = config.defaultStartTime || '09:30';
+                document.getElementById('defaultEndTime').value = config.defaultEndTime || '18:30';
+                document.getElementById('defaultLunchBreak').value = config.defaultLunchBreak || 60;
+            }
+            document.getElementById('entryBreak1').value = config.breakDuration;
+            document.getElementById('entryBreak2').value = 0;
+            document.getElementById('entryBreak3').value = 0;
+            updateEmployeeDatalist();
+        }
+
+        function resetConfiguration() {
+            config = {
+                baseRate: 18.75,
+                nightPremium: 25,
+                overtimePremium: 75,
+                breakDuration: 60,
+                defaultStartTime: '09:30',
+                defaultEndTime: '18:30',
+                defaultLunchBreak: 60
+            };
+            
+            document.getElementById('baseRate').value = config.baseRate;
+            document.getElementById('nightPremium').value = config.nightPremium;
+            document.getElementById('overtimePremium').value = config.overtimePremium;
+            document.getElementById('breakDuration').value = config.breakDuration;
+            document.getElementById('defaultStartTime').value = config.defaultStartTime;
+            document.getElementById('defaultEndTime').value = config.defaultEndTime;
+            document.getElementById('defaultLunchBreak').value = config.defaultLunchBreak;
+            document.getElementById('entryBreak1').value = config.breakDuration;
+            document.getElementById('entryBreak2').value = 0;
+            document.getElementById('entryBreak3').value = 0;
+            
+            localStorage.removeItem('fisaPontajConfig');
+            alert('✅ Configuration reset to defaults');
+        }
+
+        function calculatePay() {
+            const employeeName = document.getElementById('employeeName').value.trim();
+            const clockInDate = document.getElementById('clockInDate').value;
+            const clockInTime = document.getElementById('clockInTime').value;
+            const clockOutDate = document.getElementById('clockOutDate').value;
+            const clockOutTime = document.getElementById('clockOutTime').value;
+            
+            // Calculate total break time from all three breaks
+            const break1 = parseInt(document.getElementById('entryBreak1').value) || 0;
+            const break2 = parseInt(document.getElementById('entryBreak2').value) || 0;
+            const break3 = parseInt(document.getElementById('entryBreak3').value) || 0;
+            const breakMinutes = break1 + break2 + break3;
+
+            if (!employeeName || !clockInDate || !clockInTime || !clockOutDate || !clockOutTime) {
+                alert('⚠️ Please fill in all required fields');
+                return;
+            }
+
+            // Single entry processing
+            processSingleEntry(employeeName, clockInDate, clockInTime, clockOutDate, clockOutTime, breakMinutes, break1, break2, break3);
+        }
+
+        function processSingleEntry(employeeName, clockInDate, clockInTime, clockOutDate, clockOutTime, breakMinutes, break1, break2, break3) {
+            const clockIn = new Date(`${clockInDate}T${clockInTime}`);
+            const clockOut = new Date(`${clockOutDate}T${clockOutTime}`);
+
+            if (clockOut <= clockIn) {
+                alert('⚠️ ERROR: Clock-out must be after clock-in. For overnight shifts, ensure clock-out date is the next day.');
+                return;
+            }
+
+            // Store for repeat functionality
+            storeLastEntry();
+
+            // Calculate hours
+            const totalMinutes = (clockOut - clockIn) / (1000 * 60);
+            const workedMinutes = totalMinutes - breakMinutes;
+            const workedHours = workedMinutes / 60;
+
+            // Calculate night hours (22:00 - 06:00)
+            const nightHours = calculateNightHours(clockIn, clockOut, breakMinutes);
+            const regularHours = workedHours - nightHours;
+
+            // Calculate pay
+            const nightRate = config.baseRate * (1 + config.nightPremium / 100);
+            const regularPay = regularHours * config.baseRate;
+            const nightPay = nightHours * nightRate;
+            const totalPay = regularPay + nightPay;
+
+            // Display results
+            displayResults({
+                employeeName,
+                clockIn,
+                clockOut,
+                totalMinutes,
+                breakMinutes,
+                break1,
+                break2,
+                break3,
+                workedHours,
+                regularHours,
+                nightHours,
+                regularPay,
+                nightPay,
+                totalPay,
+                nightRate
+            });
+
+            // Save entry
+            saveEntry({
+                employeeName,
+                clockIn: clockIn.toISOString(),
+                clockOut: clockOut.toISOString(),
+                workedHours,
+                nightHours,
+                totalPay,
+                breakMinutes,
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        function processBulkEntry(employeeName, clockInDate, clockInTime, clockOutDate, clockOutTime, breakMinutes, break1, break2, break3) {
+            const bulkDays = parseInt(document.getElementById('bulkDays').value) || 1;
+            const skipWeekends = document.getElementById('skipWeekends').checked;
+            
+            // Store for repeat functionality
+            storeLastEntry();
+            
+            let entriesCreated = 0;
+            let currentDate = new Date(clockInDate);
+            
+            // Calculate the time difference between clock-in and clock-out
+            const inTime = new Date(`${clockInDate}T${clockInTime}`);
+            const outTime = new Date(`${clockOutDate}T${clockOutTime}`);
+            const daysDiff = outTime.getDate() - inTime.getDate();
+            
+            for (let i = 0; i < bulkDays; i++) {
+                // Skip weekends if option is enabled
+                const dayOfWeek = currentDate.getDay();
+                if (skipWeekends && (dayOfWeek === 0 || dayOfWeek === 6)) {
+                    currentDate.setDate(currentDate.getDate() + 1);
+                    continue;
+                }
+                
+                const currentInDate = currentDate.toISOString().split('T')[0];
+                const currentOutDate = new Date(currentDate);
+                currentOutDate.setDate(currentOutDate.getDate() + daysDiff);
+                const currentOutDateStr = currentOutDate.toISOString().split('T')[0];
+                
+                const clockIn = new Date(`${currentInDate}T${clockInTime}`);
+                const clockOut = new Date(`${currentOutDateStr}T${clockOutTime}`);
+                
+                // Calculate hours for this entry
+                const totalMinutes = (clockOut - clockIn) / (1000 * 60);
+                const workedMinutes = totalMinutes - breakMinutes;
+                const workedHours = workedMinutes / 60;
+                const nightHours = calculateNightHours(clockIn, clockOut, breakMinutes);
+                const regularHours = workedHours - nightHours;
+                
+                // Calculate pay
+                const nightRate = config.baseRate * (1 + config.nightPremium / 100);
+                const regularPay = regularHours * config.baseRate;
+                const nightPay = nightHours * nightRate;
+                const totalPay = regularPay + nightPay;
+                
+                // Save entry
+                saveEntry({
+                    employeeName,
+                    clockIn: clockIn.toISOString(),
+                    clockOut: clockOut.toISOString(),
+                    workedHours,
+                    nightHours,
+                    totalPay,
+                    breakMinutes,
+                    timestamp: new Date().toISOString()
+                });
+                
+                entriesCreated++;
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            
+            alert(`✅ Bulk Entry Complete!\n\n${entriesCreated} entries created for ${employeeName}`);
+            
+            // Display the first entry's results
+            const firstEntry = entries[0];
+            displayResults({
+                employeeName: firstEntry.employeeName,
+                clockIn: new Date(firstEntry.clockIn),
+                clockOut: new Date(firstEntry.clockOut),
+                totalMinutes: ((new Date(firstEntry.clockOut) - new Date(firstEntry.clockIn)) / (1000 * 60)),
+                breakMinutes: firstEntry.breakMinutes,
+                break1,
+                break2,
+                break3,
+                workedHours: firstEntry.workedHours,
+                regularHours: firstEntry.workedHours - firstEntry.nightHours,
+                nightHours: firstEntry.nightHours,
+                regularPay: (firstEntry.workedHours - firstEntry.nightHours) * config.baseRate,
+                nightPay: firstEntry.nightHours * (config.baseRate * (1 + config.nightPremium / 100)),
+                totalPay: firstEntry.totalPay,
+                nightRate: config.baseRate * (1 + config.nightPremium / 100)
+            });
+        }
+
+        function calculateNightHours(clockIn, clockOut, breakMinutes) {
+            let nightMinutes = 0;
+            const current = new Date(clockIn);
+            
+            while (current < clockOut) {
+                const hour = current.getHours();
+                if (hour >= 22 || hour < 6) {
+                    nightMinutes++;
+                }
+                current.setMinutes(current.getMinutes() + 1);
+            }
+
+            // Proportional break deduction from night hours
+            const totalMinutes = (clockOut - clockIn) / (1000 * 60);
+            const nightRatio = nightMinutes / totalMinutes;
+            const nightBreak = breakMinutes * nightRatio;
+            
+            return (nightMinutes - nightBreak) / 60;
+        }
+
+        function displayResults(data) {
+            document.getElementById('resultsContainer').style.display = 'block';
+            document.getElementById('noResults').style.display = 'none';
+
+            // Summary boxes
+            document.getElementById('totalHours').textContent = data.workedHours.toFixed(2);
+            document.getElementById('nightHours').textContent = data.nightHours.toFixed(2);
+            document.getElementById('regularHours').textContent = data.regularHours.toFixed(2);
+
+            // Details
+            document.getElementById('displayClockIn').textContent = formatDateTime(data.clockIn);
+            document.getElementById('displayClockOut').textContent = formatDateTime(data.clockOut);
+            document.getElementById('displayTotalTime').textContent = formatMinutes(data.totalMinutes);
+            
+            // Show break breakdown if multiple breaks
+            let breakText = `${data.breakMinutes} minutes`;
+            if (data.break1 || data.break2 || data.break3) {
+                const breakParts = [];
+                if (data.break1 > 0) breakParts.push(`Break 1: ${data.break1}m`);
+                if (data.break2 > 0) breakParts.push(`Break 2: ${data.break2}m`);
+                if (data.break3 > 0) breakParts.push(`Break 3: ${data.break3}m`);
+                if (breakParts.length > 0) {
+                    breakText = `${data.breakMinutes} min total (${breakParts.join(', ')})`;
+                }
+            }
+            
+            document.getElementById('displayBreak').textContent = breakText;
+            document.getElementById('displayWorkedHours').textContent = `${data.workedHours.toFixed(2)} hours`;
+
+            // Pay calculation
+            document.getElementById('displayBaseRate').textContent = `${config.baseRate.toFixed(2)} RON/hour`;
+            document.getElementById('displayNightRate').textContent = `${data.nightRate.toFixed(2)} RON/hour`;
+            document.getElementById('displayRegularPay').textContent = `${data.regularPay.toFixed(2)} RON`;
+            document.getElementById('displayNightPay').textContent = `${data.nightPay.toFixed(2)} RON`;
+            document.getElementById('displayTotalPay').textContent = `${data.totalPay.toFixed(2)} RON`;
+
+            // Compliance check
+            displayCompliance(data);
+        }
+
+        function displayCompliance(data) {
+            let html = '<div class="compliance-status">';
+            html += '<h4 style="margin-bottom: 15px;">✓ Compliance Status</h4>';
+            
+            // Night premium check
+            if (data.nightHours > 0) {
+                html += '<div class="compliance-item">';
+                html += '<span class="compliance-icon">✓</span>';
+                html += `<div><strong>Night Premium (Art. 124):</strong> Applied at ${config.nightPremium}% - Compliant</div>`;
+                html += '</div>';
+            }
+
+            // Break check
+            if (data.workedHours >= 6) {
+                if (data.breakMinutes >= 30) {
+                    html += '<div class="compliance-item">';
+                    html += '<span class="compliance-icon">✓</span>';
+                    html += '<div><strong>Break Requirements (Art. 102):</strong> Compliant</div>';
+                    html += '</div>';
+                } else {
+                    html += '<div class="compliance-item" style="color: #856404;">';
+                    html += '<span class="compliance-icon">⚠️</span>';
+                    html += '<div><strong>Break Requirements (Art. 102):</strong> WARNING - Minimum 30 minutes required for shifts ≥6 hours</div>';
+                    html += '</div>';
+                }
+            }
+
+            // Shift length check
+            if (data.workedHours > 8) {
+                html += '<div class="compliance-item" style="color: #856404;">';
+                html += '<span class="compliance-icon">⚠️</span>';
+                html += '<div><strong>Standard Hours (Art. 120):</strong> Exceeds 8 hours - Verify overtime authorization</div>';
+                html += '</div>';
+            }
+
+            html += '</div>';
+            document.getElementById('complianceContainer').innerHTML = html;
+        }
+
+        function formatDateTime(date) {
+            return date.toLocaleString('ro-RO', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function formatMinutes(minutes) {
+            const hours = Math.floor(minutes / 60);
+            const mins = Math.floor(minutes % 60);
+            return `${hours}h ${mins}m`;
+        }
+
+        function saveEntry(entry) {
+            entries.unshift(entry);
+            // Store all entries (removed 10-item limit)
+            localStorage.setItem('fisaPontajEntries', JSON.stringify(entries));
+            renderEntries();
+            updateEmployeeDatalist();
+            updateEmployeeSelectors();
+        }
+
+        function loadEntries() {
+            const saved = localStorage.getItem('fisaPontajEntries');
+            if (saved) {
+                entries = JSON.parse(saved);
+                renderEntries();
+            }
+            updateEmployeeSelectors();
+        }
+
+        function renderEntries() {
+            const container = document.getElementById('employeesList');
+            const countDisplay = document.getElementById('entriesCount');
+            
+            if (entries.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #6c757d; padding: 20px;">No entries yet. Add a time entry to begin.</p>';
+                if (countDisplay) countDisplay.textContent = '0';
+                updateSelectedCount();
+                return;
+            }
+
+            if (countDisplay) countDisplay.textContent = entries.length;
+
+            let html = '';
+            entries.forEach((entry, index) => {
+                const hasNight = entry.nightHours > 0;
+                const isSelected = selectedEntries.has(index);
+                html += `
+                    <div class="employee-item" style="display: flex; gap: 10px; align-items: center;">
+                        <input type="checkbox" class="entry-checkbox" data-index="${index}" ${isSelected ? 'checked' : ''} 
+                               style="width: 20px; height: 20px; cursor: pointer;" onchange="toggleEntrySelection(${index})">
+                        <div class="employee-info" style="flex: 1;">
+                            <div class="employee-name">
+                                ${entry.employeeName}
+                                ${hasNight ? '<span class="night-indicator">🌙 Night Shift</span>' : ''}
+                            </div>
+                            <div class="employee-time">
+                                ${new Date(entry.clockIn).toLocaleString('ro-RO', {month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'})} 
+                                → 
+                                ${new Date(entry.clockOut).toLocaleString('ro-RO', {month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'})}
+                                | ${entry.workedHours.toFixed(2)}h | <strong>${entry.totalPay.toFixed(2)} RON</strong>
+                            </div>
+                        </div>
+                        <button class="icon-btn delete-btn" data-index="${index}" style="background: #dc3545; color: white;" title="Delete entry">
+                            🗑️ Delete
+                        </button>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            
+            // Attach event listeners to all delete buttons using event delegation
+            const deleteButtons = container.querySelectorAll('.delete-btn');
+            deleteButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    deleteEntry(index);
+                });
+            });
+
+            updateSelectedCount();
+        }
+
+        function toggleEntrySelection(index) {
+            if (selectedEntries.has(index)) {
+                selectedEntries.delete(index);
+            } else {
+                selectedEntries.add(index);
+            }
+            updateSelectedCount();
+        }
+
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAllCheckbox').checked;
+            selectedEntries.clear();
+            
+            if (selectAll) {
+                entries.forEach((_, index) => selectedEntries.add(index));
+            }
+            
+            renderEntries();
+        }
+
+        function updateSelectedCount() {
+            const count = selectedEntries.size;
+            const countDisplay = document.getElementById('selectedCount');
+            const deleteBtn = document.getElementById('deleteSelectedBtn');
+            
+            if (countDisplay) countDisplay.textContent = count;
+            if (deleteBtn) {
+                deleteBtn.style.display = count > 0 ? 'block' : 'none';
+            }
+
+            // Update select all checkbox
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = entries.length > 0 && selectedEntries.size === entries.length;
+            }
+        }
+
+        function deleteSelected() {
+            if (selectedEntries.size === 0) {
+                alert('⚠️ No entries selected. Check the boxes next to entries you want to delete.');
+                return;
+            }
+
+            if (confirm(`❌ Delete ${selectedEntries.size} selected entries?\n\nThis action cannot be undone.`)) {
+                // Sort indices in descending order to delete from end to start
+                const indicesToDelete = Array.from(selectedEntries).sort((a, b) => b - a);
+                
+                indicesToDelete.forEach(index => {
+                    entries.splice(index, 1);
+                });
+                
+                selectedEntries.clear();
+                localStorage.setItem('fisaPontajEntries', JSON.stringify(entries));
+                renderEntries();
+                updateEmployeeDatalist();
+                updateEmployeeSelectors();
+                alert(`✅ ${indicesToDelete.length} entries deleted successfully!`);
+            }
+        }
+
+        function deleteEntry(index) {
+            if (confirm('❌ Delete this entry?\n\nThis action cannot be undone.')) {
+                entries.splice(index, 1);
+                selectedEntries.delete(index);
+                // Adjust remaining selected indices
+                const newSelected = new Set();
+                selectedEntries.forEach(idx => {
+                    if (idx > index) newSelected.add(idx - 1);
+                    else if (idx < index) newSelected.add(idx);
+                });
+                selectedEntries = newSelected;
+                
+                localStorage.setItem('fisaPontajEntries', JSON.stringify(entries));
+                renderEntries();
+                updateEmployeeDatalist();
+                updateEmployeeSelectors();
+                alert('✅ Entry deleted successfully!');
+            }
+        }
+
+        function clearAllEntries() {
+            if (entries.length === 0) {
+                alert('ℹ️ No entries to clear.');
+                return;
+            }
+
+            if (confirm(`⚠️ DELETE ALL ENTRIES?\n\nYou are about to delete ${entries.length} entries.\n\nThis action cannot be undone.\n\nConsider exporting to CSV first for backup.`)) {
+                entries = [];
+                selectedEntries.clear();
+                localStorage.setItem('fisaPontajEntries', JSON.stringify(entries));
+                renderEntries();
+                updateEmployeeDatalist();
+                updateEmployeeSelectors();
+                alert('✅ All entries cleared!');
+            }
+        }
+
+        function clearEntry() {
+            document.getElementById('employeeName').value = '';
+            document.getElementById('clockInTime').value = '';
+            document.getElementById('clockOutTime').value = '';
+            document.getElementById('entryBreak1').value = config.breakDuration;
+            document.getElementById('entryBreak2').value = 0;
+            document.getElementById('entryBreak3').value = 0;
+            setDefaultDates();
+            
+            document.getElementById('resultsContainer').style.display = 'none';
+            document.getElementById('noResults').style.display = 'block';
+        }
+
+        // Check for midnight crossing
+        document.getElementById('clockInTime').addEventListener('change', checkMidnightCrossing);
+        document.getElementById('clockOutTime').addEventListener('change', checkMidnightCrossing);
+        document.getElementById('clockInDate').addEventListener('change', checkMidnightCrossing);
+        document.getElementById('clockOutDate').addEventListener('change', checkMidnightCrossing);
+
+        function checkMidnightCrossing() {
+            const clockInTime = document.getElementById('clockInTime').value;
+            const clockOutTime = document.getElementById('clockOutTime').value;
+            const clockInDate = document.getElementById('clockInDate').value;
+            const clockOutDate = document.getElementById('clockOutDate').value;
+
+            if (clockInTime && clockOutTime && clockInDate && clockOutDate) {
+                const inHour = parseInt(clockInTime.split(':')[0]);
+                const outHour = parseInt(clockOutTime.split(':')[0]);
+                
+                if (clockInDate === clockOutDate && inHour >= 18 && outHour <= 10) {
+                    document.getElementById('midnightAlert').style.display = 'block';
+                } else {
+                    document.getElementById('midnightAlert').style.display = 'none';
+                }
+            }
+        }
+
+        // Apply Default Shift Configuration
+        function applyDefaultShift() {
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+            
+            document.getElementById('clockInDate').value = todayStr;
+            document.getElementById('clockInTime').value = config.defaultStartTime;
+            document.getElementById('clockOutDate').value = todayStr;
+            document.getElementById('clockOutTime').value = config.defaultEndTime;
+            document.getElementById('entryBreak1').value = config.defaultLunchBreak;
+            document.getElementById('entryBreak2').value = 0;
+            document.getElementById('entryBreak3').value = 0;
+            
+            checkMidnightCrossing();
+        }
+
+        // Direct Bulk Entry Processing
+        function processBulkEntryDirect() {
+            const employeeName = document.getElementById('employeeName').value.trim();
+            const clockInDate = document.getElementById('clockInDate').value;
+            const clockInTime = document.getElementById('clockInTime').value;
+            const clockOutDate = document.getElementById('clockOutDate').value;
+            const clockOutTime = document.getElementById('clockOutTime').value;
+            
+            const break1 = parseInt(document.getElementById('entryBreak1').value) || 0;
+            const break2 = parseInt(document.getElementById('entryBreak2').value) || 0;
+            const break3 = parseInt(document.getElementById('entryBreak3').value) || 0;
+            const breakMinutes = break1 + break2 + break3;
+
+            if (!employeeName || !clockInDate || !clockInTime || !clockOutDate || !clockOutTime) {
+                alert('⚠️ Please fill in all required fields before creating bulk entries');
+                return;
+            }
+
+            processBulkEntry(employeeName, clockInDate, clockInTime, clockOutDate, clockOutTime, breakMinutes, break1, break2, break3);
+        }
+
+        // Repeat Last Entry
+        let lastEntry = null;
+
+        function repeatLast() {
+            if (!lastEntry) {
+                alert('⚠️ No previous entry to repeat. Create an entry first.');
+                return;
+            }
+            
+            document.getElementById('employeeName').value = lastEntry.employeeName;
+            document.getElementById('clockInDate').value = lastEntry.clockInDate;
+            document.getElementById('clockInTime').value = lastEntry.clockInTime;
+            document.getElementById('clockOutDate').value = lastEntry.clockOutDate;
+            document.getElementById('clockOutTime').value = lastEntry.clockOutTime;
+            document.getElementById('entryBreak1').value = lastEntry.break1 || config.breakDuration;
+            document.getElementById('entryBreak2').value = lastEntry.break2 || 0;
+            document.getElementById('entryBreak3').value = lastEntry.break3 || 0;
+            
+            checkMidnightCrossing();
+        }
+
+        // Store last entry when calculating
+        function storeLastEntry() {
+            lastEntry = {
+                employeeName: document.getElementById('employeeName').value,
+                clockInDate: document.getElementById('clockInDate').value,
+                clockInTime: document.getElementById('clockInTime').value,
+                clockOutDate: document.getElementById('clockOutDate').value,
+                clockOutTime: document.getElementById('clockOutTime').value,
+                break1: parseInt(document.getElementById('entryBreak1').value) || 0,
+                break2: parseInt(document.getElementById('entryBreak2').value) || 0,
+                break3: parseInt(document.getElementById('entryBreak3').value) || 0
+            };
+        }
+
+        // Employee Autocomplete
+        function updateEmployeeDatalist() {
+            const datalist = document.getElementById('employeeDatalist');
+            const uniqueEmployees = [...new Set([...defaultEmployees, ...entries.map(e => e.employeeName)])];
+            
+            datalist.innerHTML = '';
+            uniqueEmployees.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                datalist.appendChild(option);
+            });
+        }
+
+        // Update employee selectors for reports and payments
+        function updateEmployeeSelectors() {
+            const uniqueEmployees = [...new Set([...defaultEmployees, ...entries.map(e => e.employeeName)])];
+            
+            // Update report selector
+            const reportSelect = document.getElementById('reportEmployeeSelect');
+            if (reportSelect) {
+                const currentValue = reportSelect.value;
+                reportSelect.innerHTML = '<option value="">-- Select Employee --</option>';
+                uniqueEmployees.forEach(name => {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    option.textContent = name;
+                    reportSelect.appendChild(option);
+                });
+                reportSelect.value = currentValue;
+            }
+
+            // Update payment selector
+            const paymentSelect = document.getElementById('paymentEmployee');
+            if (paymentSelect) {
+                const currentValue = paymentSelect.value;
+                paymentSelect.innerHTML = '<option value="">-- Select Employee --</option>';
+                uniqueEmployees.forEach(name => {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    option.textContent = name;
+                    paymentSelect.appendChild(option);
+                });
+                paymentSelect.value = currentValue;
+            }
+        }
+
+        // Employee Reporting
+        function generateEmployeeReport() {
+            const employeeName = document.getElementById('reportEmployeeSelect').value;
+            
+            if (!employeeName) {
+                document.getElementById('employeeReportContainer').style.display = 'none';
+                return;
+            }
+
+            // Filter entries for this employee
+            const employeeEntries = entries.filter(e => e.employeeName === employeeName);
+            
+            if (employeeEntries.length === 0) {
+                alert(`ℹ️ No entries found for ${employeeName}`);
+                document.getElementById('employeeReportContainer').style.display = 'none';
+                return;
+            }
+
+            // Calculate totals
+            const totalHours = employeeEntries.reduce((sum, e) => sum + e.workedHours, 0);
+            const totalPay = employeeEntries.reduce((sum, e) => sum + e.totalPay, 0);
+            
+            // Calculate payments for this employee
+            const employeePayments = payments.filter(p => p.employeeName === employeeName);
+            const totalPaid = employeePayments.reduce((sum, p) => sum + p.amount, 0);
+            const balance = totalPay - totalPaid;
+
+            // Display report
+            document.getElementById('reportEmployeeName').textContent = `Report: ${employeeName}`;
+            document.getElementById('reportTotalEntries').textContent = employeeEntries.length;
+            document.getElementById('reportTotalHours').textContent = totalHours.toFixed(2);
+            document.getElementById('reportTotalPay').textContent = totalPay.toFixed(2) + ' RON';
+            document.getElementById('reportEarned').textContent = totalPay.toFixed(2) + ' RON';
+            document.getElementById('reportPaid').textContent = totalPaid.toFixed(2) + ' RON';
+            document.getElementById('reportBalance').textContent = balance.toFixed(2) + ' RON';
+
+            // Display work history
+            let historyHtml = '';
+            employeeEntries.forEach(entry => {
+                const clockIn = new Date(entry.clockIn);
+                const clockOut = new Date(entry.clockOut);
+                historyHtml += `
+                    <div style="background: #f8f9fa; padding: 10px; margin-bottom: 8px; border-radius: 4px; border-left: 3px solid #c9302c;">
+                        <div style="font-weight: 600; margin-bottom: 5px;">
+                            ${clockIn.toLocaleDateString('ro-RO')} | ${entry.workedHours.toFixed(2)}h
+                        </div>
+                        <div style="font-size: 0.9em; color: #6c757d;">
+                            ${clockIn.toLocaleTimeString('ro-RO', {hour: '2-digit', minute: '2-digit'})} - 
+                            ${clockOut.toLocaleTimeString('ro-RO', {hour: '2-digit', minute: '2-digit'})} | 
+                            <strong>${entry.totalPay.toFixed(2)} RON</strong>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('employeeWorkHistory').innerHTML = historyHtml;
+
+            document.getElementById('employeeReportContainer').style.display = 'block';
+        }
+
+        // Payment Tracking
+        function loadPayments() {
+            const saved = localStorage.getItem('fisaPontajPayments');
+            if (saved) {
+                payments = JSON.parse(saved);
+            }
+            renderPaymentHistory();
+        }
+
+        function recordPayment() {
+            const employeeName = document.getElementById('paymentEmployee').value;
+            const date = document.getElementById('paymentDate').value;
+            const amount = parseFloat(document.getElementById('paymentAmount').value);
+            const type = document.getElementById('paymentType').value;
+            const notes = document.getElementById('paymentNotes').value;
+
+            if (!employeeName || !date || !amount || amount <= 0) {
+                alert('⚠️ Please fill in all required fields (Employee, Date, Amount)');
+                return;
+            }
+
+            const payment = {
+                id: Date.now(),
+                employeeName,
+                date,
+                amount,
+                type,
+                notes,
+                timestamp: new Date().toISOString()
+            };
+
+            payments.unshift(payment);
+            localStorage.setItem('fisaPontajPayments', JSON.stringify(payments));
+            
+            // Clear form
+            document.getElementById('paymentAmount').value = '';
+            document.getElementById('paymentNotes').value = '';
+            
+            renderPaymentHistory();
+            
+            // Refresh report if viewing this employee
+            const currentReport = document.getElementById('reportEmployeeSelect').value;
+            if (currentReport === employeeName) {
+                generateEmployeeReport();
+            }
+
+            alert(`✅ Payment of ${amount.toFixed(2)} RON recorded for ${employeeName}`);
+        }
+
+        function renderPaymentHistory() {
+            const container = document.getElementById('paymentHistoryList');
+            
+            if (payments.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #6c757d; padding: 20px; background: #f8f9fa; border-radius: 6px;">No payments recorded yet.</p>';
+                return;
+            }
+
+            let html = '';
+            payments.forEach(payment => {
+                const paymentDate = new Date(payment.date);
+                const typeLabels = {
+                    'advance': '💵 Advance',
+                    'final': '✅ Final',
+                    'partial': '📊 Partial'
+                };
+                html += `
+                    <div style="background: white; padding: 15px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #dee2e6;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                            <div>
+                                <div style="font-weight: 600; color: #2c3e50; margin-bottom: 5px;">
+                                    ${payment.employeeName}
+                                    <span style="background: #e3f2fd; color: #1976d2; padding: 2px 8px; border-radius: 4px; font-size: 0.85em; margin-left: 8px;">
+                                        ${typeLabels[payment.type]}
+                                    </span>
+                                </div>
+                                <div style="font-size: 0.9em; color: #6c757d;">
+                                    ${paymentDate.toLocaleDateString('ro-RO', {day: '2-digit', month: 'short', year: 'numeric'})}
+                                    ${payment.notes ? `| ${payment.notes}` : ''}
+                                </div>
+                            </div>
+                            <div style="font-size: 1.2em; font-weight: 700; color: #dc3545;">
+                                ${payment.amount.toFixed(2)} RON
+                            </div>
+                        </div>
+                        <button class="icon-btn" onclick="deletePayment(${payment.id})" style="background: #6c757d; color: white; font-size: 0.85em; padding: 4px 10px;">
+                            🗑️ Delete
+                        </button>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function deletePayment(paymentId) {
+            if (confirm('❌ Delete this payment record?\n\nThis action cannot be undone.')) {
+                payments = payments.filter(p => p.id !== paymentId);
+                localStorage.setItem('fisaPontajPayments', JSON.stringify(payments));
+                renderPaymentHistory();
+                
+                // Refresh report if open
+                const currentReport = document.getElementById('reportEmployeeSelect').value;
+                if (currentReport) {
+                    generateEmployeeReport();
+                }
+                
+                alert('✅ Payment record deleted!');
+            }
+        }
+
+        // Export to CSV
+        function exportToCSV() {
+            if (entries.length === 0) {
+                alert('⚠️ No entries to export. Create some entries first.');
+                return;
+            }
+
+            // CSV Header
+            let csv = 'Employee Name,Clock-In Date,Clock-In Time,Clock-Out Date,Clock-Out Time,Break 1 (min),Break 2 (min),Break 3 (min),Total Hours,Night Hours,Total Pay (RON)\n';
+
+            // Add data rows
+            entries.forEach(entry => {
+                const clockIn = new Date(entry.clockIn);
+                const clockOut = new Date(entry.clockOut);
+                
+                const inDate = formatDateDDMMYY(clockIn);
+                const inTime = formatTime(clockIn);
+                const outDate = formatDateDDMMYY(clockOut);
+                const outTime = formatTime(clockOut);
+                
+                // Parse break minutes (stored as total, distribute as needed)
+                const break1 = entry.breakMinutes || 0;
+                const break2 = 0;
+                const break3 = 0;
+                
+                csv += `"${entry.employeeName}",${inDate},${inTime},${outDate},${outTime},${break1},${break2},${break3},${entry.workedHours.toFixed(2)},${entry.nightHours.toFixed(2)},${entry.totalPay.toFixed(2)}\n`;
+            });
+
+            // Create download
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            const timestamp = new Date().toISOString().split('T')[0];
+            link.setAttribute('href', url);
+            link.setAttribute('download', `fisa-pontaj-export-${timestamp}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            alert('✅ Export successful! Check your downloads folder.');
+        }
+
+        // Download CSV Template
+        function downloadTemplate() {
+            const csv = 'Employee Name,Clock-In Date,Clock-In Time,Clock-Out Date,Clock-Out Time,Break 1 (min),Break 2 (min),Break 3 (min)\n' +
+                       'Ion Popescu,07/11/24,09:30,07/11/24,18:30,60,0,0\n' +
+                       'Maria Ionescu,07/11/24,09:30,07/11/24,18:30,60,0,0\n' +
+                       'Andrei Dumitrescu,08/11/24,09:30,08/11/24,18:30,60,0,0\n';
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'fisa-pontaj-template.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            alert('✅ Template downloaded! Open in Excel or Google Sheets, fill it in, then upload back.');
+        }
+
+        // Import from CSV
+        function importCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.split('\n');
+                
+                if (lines.length < 2) {
+                    alert('⚠️ CSV file is empty or invalid.');
+                    return;
+                }
+
+                let imported = 0;
+                let errors = [];
+
+                // Skip header row
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+
+                    try {
+                        // Parse CSV line (handle quoted fields)
+                        const fields = parseCSVLine(line);
+                        
+                        if (fields.length < 8) {
+                            errors.push(`Line ${i + 1}: Incomplete data`);
+                            continue;
+                        }
+
+                        const employeeName = fields[0].trim();
+                        const clockInDateStr = fields[1].trim();
+                        const clockInTime = fields[2].trim();
+                        const clockOutDateStr = fields[3].trim();
+                        const clockOutTime = fields[4].trim();
+                        const break1 = parseInt(fields[5]) || 0;
+                        const break2 = parseInt(fields[6]) || 0;
+                        const break3 = parseInt(fields[7]) || 0;
+                        const breakMinutes = break1 + break2 + break3;
+
+                        if (!employeeName || !clockInDateStr || !clockInTime || !clockOutDateStr || !clockOutTime) {
+                            errors.push(`Line ${i + 1}: Missing required fields`);
+                            continue;
+                        }
+
+                        // Parse DD/MM/YY dates
+                        const clockInDate = parseDDMMYY(clockInDateStr);
+                        const clockOutDate = parseDDMMYY(clockOutDateStr);
+
+                        if (!clockInDate || !clockOutDate) {
+                            errors.push(`Line ${i + 1}: Invalid date format (use DD/MM/YY)`);
+                            continue;
+                        }
+
+                        // Create datetime objects
+                        const clockIn = new Date(`${clockInDate}T${clockInTime}`);
+                        const clockOut = new Date(`${clockOutDate}T${clockOutTime}`);
+
+                        if (isNaN(clockIn.getTime()) || isNaN(clockOut.getTime())) {
+                            errors.push(`Line ${i + 1}: Invalid date or time format`);
+                            continue;
+                        }
+
+                        if (clockOut <= clockIn) {
+                            errors.push(`Line ${i + 1}: Clock-out must be after clock-in`);
+                            continue;
+                        }
+
+                        // Calculate hours
+                        const totalMinutes = (clockOut - clockIn) / (1000 * 60);
+                        const workedMinutes = totalMinutes - breakMinutes;
+                        const workedHours = workedMinutes / 60;
+                        const nightHours = calculateNightHours(clockIn, clockOut, breakMinutes);
+                        const regularHours = workedHours - nightHours;
+
+                        // Calculate pay
+                        const nightRate = config.baseRate * (1 + config.nightPremium / 100);
+                        const regularPay = regularHours * config.baseRate;
+                        const nightPay = nightHours * nightRate;
+                        const totalPay = regularPay + nightPay;
+
+                        // Save entry
+                        saveEntry({
+                            employeeName,
+                            clockIn: clockIn.toISOString(),
+                            clockOut: clockOut.toISOString(),
+                            workedHours,
+                            nightHours,
+                            totalPay,
+                            breakMinutes,
+                            timestamp: new Date().toISOString()
+                        });
+
+                        imported++;
+                    } catch (error) {
+                        errors.push(`Line ${i + 1}: ${error.message}`);
+                    }
+                }
+
+                // Reset file input
+                event.target.value = '';
+
+                // Show results
+                let message = `✅ Import Complete!\n\n${imported} entries imported successfully.`;
+                if (errors.length > 0) {
+                    message += `\n\n⚠️ ${errors.length} errors:\n${errors.slice(0, 5).join('\n')}`;
+                    if (errors.length > 5) {
+                        message += `\n... and ${errors.length - 5} more errors.`;
+                    }
+                }
+                alert(message);
+            };
+
+            reader.readAsText(file);
+        }
+
+        // Helper: Parse CSV line (handles quoted fields)
+        function parseCSVLine(line) {
+            const fields = [];
+            let field = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    fields.push(field);
+                    field = '';
+                } else {
+                    field += char;
+                }
+            }
+            fields.push(field);
+
+            return fields;
+        }
+
+        // Helper: Parse DD/MM/YY to YYYY-MM-DD
+        function parseDDMMYY(dateStr) {
+            const parts = dateStr.split('/');
+            if (parts.length !== 3) return null;
+
+            const day = parts[0].padStart(2, '0');
+            const month = parts[1].padStart(2, '0');
+            let year = parts[2];
+
+            // Handle 2-digit year (YY to YYYY)
+            if (year.length === 2) {
+                const currentYear = new Date().getFullYear();
+                const century = Math.floor(currentYear / 100) * 100;
+                year = century + parseInt(year);
+            }
+
+            return `${year}-${month}-${day}`;
+        }
+
+        // Helper: Format date as DD/MM/YY
+        function formatDateDDMMYY(date) {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = String(date.getFullYear()).slice(-2);
+            return `${day}/${month}/${year}`;
+        }
+
+        // Helper: Format time as HH:MM
+        function formatTime(date) {
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+    </script>
+</body>
+</html>
