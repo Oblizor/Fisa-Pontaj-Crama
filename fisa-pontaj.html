@@ -446,9 +446,9 @@
             <div>
                 <div class="card">
                     <div class="tab-container">
-                        <button class="tab active" onclick="switchTab('config')">⚙️ Configuration</button>
-                        <button class="tab" onclick="switchTab('entry')">➕ Time Entry</button>
-                        <button class="tab" onclick="switchTab('reports')">📊 Reports & Payments</button>
+                        <button class="tab active" onclick="switchTab(event, 'config')">⚙️ Configuration</button>
+                        <button class="tab" onclick="switchTab(event, 'entry')">➕ Time Entry</button>
+                        <button class="tab" onclick="switchTab(event, 'reports')">📊 Reports & Payments</button>
                     </div>
 
                     <!-- Configuration Tab -->
@@ -466,7 +466,7 @@
 
                             <div class="form-group">
                                 <label>Night Premium (%)</label>
-                                <input type="number" id="nightPremium" value="25" step="1" min="25">
+                                <input type="number" id="nightPremium" value="25" step="1" min="0">
                                 <div class="legal-reference">Legal minimum: 25% (Art. 124)</div>
                             </div>
 
@@ -680,7 +680,12 @@
 
                         <!-- Employee Report Display -->
                         <div id="employeeReportContainer" style="display: none;">
-                            <div style="background: white; border-radius: 8px; padding: 20px; margin-top: 20px; border: 2px solid #c9302c;">
+                            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                                <button id="printReportBtn" class="btn btn-secondary" style="display: none; padding: 10px 20px;" onclick="printCurrentReport()">
+                                    🖨️ Print Employee Report
+                                </button>
+                            </div>
+                            <div style="background: white; border-radius: 8px; padding: 20px; margin-top: 10px; border: 2px solid #c9302c;">
                                 <h3 style="color: #2c3e50; margin-bottom: 15px;" id="reportEmployeeName">Employee Report</h3>
                                 
                                 <div class="summary-grid" style="margin-bottom: 20px;">
@@ -874,38 +879,6 @@
                     </div>
                 </div>
 
-                <!-- Compliance Guide -->
-                <div class="card" style="margin-top: 20px;">
-                    <div class="card-title">⚖️ Compliance Reference</div>
-                    
-                    <div class="compliance-item">
-                        <span class="compliance-icon">📘</span>
-                        <div>
-                            <strong>Art. 102:</strong> Minimum 30-minute break after 6 consecutive hours
-                        </div>
-                    </div>
-                    
-                    <div class="compliance-item">
-                        <span class="compliance-icon">🌙</span>
-                        <div>
-                            <strong>Art. 124:</strong> Night work (22:00-06:00) requires minimum 25% premium
-                        </div>
-                    </div>
-                    
-                    <div class="compliance-item">
-                        <span class="compliance-icon">⏰</span>
-                        <div>
-                            <strong>Art. 120:</strong> Standard workweek is 40 hours (5 days × 8 hours)
-                        </div>
-                    </div>
-                    
-                    <div class="compliance-item">
-                        <span class="compliance-icon">😴</span>
-                        <div>
-                            <strong>Art. 111:</strong> Minimum 12-hour rest period between shifts
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -925,6 +898,116 @@
         let entries = [];
         let selectedEntries = new Set();
         let payments = []; // Track payments to employees
+        let currentReportData = null;
+
+        const BACKUP_STORAGE_KEY = 'fisaPontajBackups';
+        const MAX_BACKUPS = 20;
+
+        const backupManager = (() => {
+            function getStoredBackups() {
+                const raw = localStorage.getItem(BACKUP_STORAGE_KEY);
+                if (!raw) return [];
+
+                try {
+                    const parsed = JSON.parse(raw);
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch (error) {
+                    console.warn('Invalid backup data detected. Reinitializing backups.', error);
+                    return [];
+                }
+            }
+
+            function persistBackups(backups) {
+                localStorage.setItem(BACKUP_STORAGE_KEY, JSON.stringify(backups));
+            }
+
+            function captureSnapshot(action = 'auto') {
+                const snapshot = {
+                    timestamp: new Date().toISOString(),
+                    action,
+                    entries: JSON.parse(JSON.stringify(entries))
+                };
+
+                let backups = getStoredBackups();
+
+                if (backups.length > 0) {
+                    const last = backups[0];
+                    if (JSON.stringify(last.entries) === JSON.stringify(snapshot.entries)) {
+                        return backups;
+                    }
+                }
+
+                backups.unshift(snapshot);
+
+                if (backups.length > MAX_BACKUPS) {
+                    backups = backups.slice(0, MAX_BACKUPS);
+                }
+
+                persistBackups(backups);
+                return backups;
+            }
+
+            function initialize() {
+                let backups = getStoredBackups();
+
+                if (backups.length === 0) {
+                    persistBackups([
+                        {
+                            timestamp: new Date().toISOString(),
+                            action: 'initial-state',
+                            entries: JSON.parse(JSON.stringify(entries))
+                        }
+                    ]);
+                    return;
+                }
+
+                if (backups.length > MAX_BACKUPS) {
+                    persistBackups(backups.slice(0, MAX_BACKUPS));
+                }
+            }
+
+            function persistEntries(action = 'update') {
+                localStorage.setItem('fisaPontajEntries', JSON.stringify(entries));
+                captureSnapshot(action);
+            }
+
+            function restore(index = 0) {
+                const backups = getStoredBackups();
+
+                if (backups.length === 0) {
+                    alert('⚠️ No backups available to restore.');
+                    return false;
+                }
+
+                const target = backups[index] || backups[0];
+
+                entries = JSON.parse(JSON.stringify(target.entries));
+                selectedEntries.clear();
+
+                persistEntries('restore-backup');
+                renderEntries();
+                updateEmployeeDatalist();
+                updateEmployeeSelectors();
+
+                const restoredAt = new Date(target.timestamp).toLocaleString('ro-RO');
+                alert(`✅ Backup from ${restoredAt} restored successfully!`);
+                return true;
+            }
+
+            return {
+                initialize,
+                persistEntries,
+                restore,
+                listBackups: () => getStoredBackups(),
+                captureSnapshot
+            };
+        })();
+
+        window.fisaPontajBackup = {
+            list: () => backupManager.listBackups(),
+            restore: index => backupManager.restore(index),
+            create: (action = 'manual') => backupManager.captureSnapshot(action)
+        };
 
         // Default employees
         const defaultEmployees = ['Marian Neagu', 'Jenița Prica', 'Emilian Prica'];
@@ -936,6 +1019,7 @@
             updateClock();
             setInterval(updateClock, 1000);
             loadEntries();
+            backupManager.initialize();
             loadPayments();
             updateEmployeeSelectors();
             
@@ -954,12 +1038,12 @@
             const today = new Date();
             const tomorrow = new Date(today);
             tomorrow.setDate(tomorrow.getDate() + 1);
-            
+
             document.getElementById('clockInDate').valueAsDate = today;
             document.getElementById('clockOutDate').valueAsDate = today;
         }
 
-        function switchTab(tabName) {
+        function switchTab(event, tabName) {
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             
@@ -977,9 +1061,7 @@
             const defaultLunchBreak = parseInt(document.getElementById('defaultLunchBreak').value);
 
             if (nightPremium < 25) {
-                alert('⚠️ COMPLIANCE ALERT: Night premium cannot be below 25% (Art. 124, Codul Muncii)');
-                document.getElementById('nightPremium').value = 25;
-                return;
+                alert('⚠️ COMPLIANCE NOTE: Night premium is below the 25% legal guidance (Art. 124). Value saved as entered.');
             }
 
             config = { 
@@ -1322,7 +1404,7 @@
         function saveEntry(entry) {
             entries.unshift(entry);
             // Store all entries (removed 10-item limit)
-            localStorage.setItem('fisaPontajEntries', JSON.stringify(entries));
+            backupManager.persistEntries('add-entry');
             renderEntries();
             updateEmployeeDatalist();
             updateEmployeeSelectors();
@@ -1443,7 +1525,7 @@
                 });
                 
                 selectedEntries.clear();
-                localStorage.setItem('fisaPontajEntries', JSON.stringify(entries));
+                backupManager.persistEntries('delete-selected');
                 renderEntries();
                 updateEmployeeDatalist();
                 updateEmployeeSelectors();
@@ -1463,7 +1545,7 @@
                 });
                 selectedEntries = newSelected;
                 
-                localStorage.setItem('fisaPontajEntries', JSON.stringify(entries));
+                backupManager.persistEntries('delete-entry');
                 renderEntries();
                 updateEmployeeDatalist();
                 updateEmployeeSelectors();
@@ -1480,7 +1562,7 @@
             if (confirm(`⚠️ DELETE ALL ENTRIES?\n\nYou are about to delete ${entries.length} entries.\n\nThis action cannot be undone.\n\nConsider exporting to CSV first for backup.`)) {
                 entries = [];
                 selectedEntries.clear();
-                localStorage.setItem('fisaPontajEntries', JSON.stringify(entries));
+                backupManager.persistEntries('clear-all');
                 renderEntries();
                 updateEmployeeDatalist();
                 updateEmployeeSelectors();
@@ -1646,18 +1728,24 @@
         // Employee Reporting
         function generateEmployeeReport() {
             const employeeName = document.getElementById('reportEmployeeSelect').value;
-            
+            const reportContainer = document.getElementById('employeeReportContainer');
+            const printButton = document.getElementById('printReportBtn');
+
             if (!employeeName) {
-                document.getElementById('employeeReportContainer').style.display = 'none';
+                currentReportData = null;
+                if (reportContainer) reportContainer.style.display = 'none';
+                if (printButton) printButton.style.display = 'none';
                 return;
             }
 
             // Filter entries for this employee
             const employeeEntries = entries.filter(e => e.employeeName === employeeName);
-            
+
             if (employeeEntries.length === 0) {
                 alert(`ℹ️ No entries found for ${employeeName}`);
-                document.getElementById('employeeReportContainer').style.display = 'none';
+                currentReportData = null;
+                if (reportContainer) reportContainer.style.display = 'none';
+                if (printButton) printButton.style.display = 'none';
                 return;
             }
 
@@ -1699,7 +1787,190 @@
             });
             document.getElementById('employeeWorkHistory').innerHTML = historyHtml;
 
-            document.getElementById('employeeReportContainer').style.display = 'block';
+            currentReportData = {
+                employeeName,
+                entries: employeeEntries,
+                payments: employeePayments,
+                totals: {
+                    totalHours,
+                    totalPay,
+                    totalPaid,
+                    balance
+                }
+            };
+
+            if (printButton) {
+                printButton.style.display = 'inline-flex';
+            }
+            if (reportContainer) reportContainer.style.display = 'block';
+        }
+
+        function printCurrentReport() {
+            if (!currentReportData || !currentReportData.entries || currentReportData.entries.length === 0) {
+                alert('⚠️ Select an employee with recorded entries before printing a report.');
+                return;
+            }
+
+            const { employeeName, entries: employeeEntries, payments: employeePayments, totals } = currentReportData;
+            const printWindow = window.open('', '_blank');
+
+            if (!printWindow) {
+                alert('⚠️ Pop-up blocked. Please allow pop-ups to print the report.');
+                return;
+            }
+
+            const formatDate = date => date.toLocaleDateString('ro-RO', { year: 'numeric', month: '2-digit', day: '2-digit' });
+            const formatTimeShort = date => date.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
+            const generatedAt = new Date().toLocaleString('ro-RO');
+
+            const entryRows = employeeEntries.map((entry, index) => {
+                const clockIn = new Date(entry.clockIn);
+                const clockOut = new Date(entry.clockOut);
+                return `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${formatDate(clockIn)}</td>
+                        <td>${formatTimeShort(clockIn)}</td>
+                        <td>${formatDate(clockOut)}</td>
+                        <td>${formatTimeShort(clockOut)}</td>
+                        <td>${entry.workedHours.toFixed(2)} h</td>
+                        <td>${entry.nightHours.toFixed(2)} h</td>
+                        <td>${entry.totalPay.toFixed(2)} RON</td>
+                    </tr>
+                `;
+            }).join('');
+
+            const paymentLabels = {
+                advance: 'Avans',
+                final: 'Final',
+                partial: 'Parțial'
+            };
+
+            const paymentRows = employeePayments.length > 0
+                ? employeePayments.map((payment, index) => {
+                    const paymentDate = payment.date ? new Date(`${payment.date}T00:00:00`) : new Date(payment.timestamp);
+                    const dateLabel = isNaN(paymentDate.getTime()) ? '-' : formatDate(paymentDate);
+                    const notes = payment.notes ? payment.notes : '-';
+                    return `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${dateLabel}</td>
+                            <td>${paymentLabels[payment.type] || payment.type}</td>
+                            <td>${payment.amount.toFixed(2)} RON</td>
+                            <td>${notes}</td>
+                        </tr>
+                    `;
+                }).join('')
+                : '<tr><td colspan="5" style="text-align:center; padding: 12px;">Nu există plăți înregistrate pentru acest angajat.</td></tr>';
+
+            const printStyles = `
+                body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 40px; color: #1f2a44; }
+                h1 { margin-bottom: 5px; font-size: 28px; }
+                h2 { margin-top: 30px; margin-bottom: 10px; font-size: 20px; color: #c9302c; }
+                .meta { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px; font-size: 14px; margin-bottom: 25px; }
+                .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
+                .summary-card { border: 1px solid #d0d7e2; border-radius: 8px; padding: 15px; background: #f8fafc; }
+                .summary-card .label { font-size: 12px; text-transform: uppercase; color: #6c7a91; letter-spacing: 0.5px; }
+                .summary-card .value { font-size: 20px; font-weight: 700; margin-top: 8px; }
+                table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                th, td { border: 1px solid #d0d7e2; padding: 10px 12px; font-size: 13px; }
+                th { background: #e9eff8; text-transform: uppercase; letter-spacing: 0.4px; font-size: 12px; }
+                tbody tr:nth-child(even) { background: #f5f8fd; }
+                footer { margin-top: 40px; font-size: 12px; color: #6c7a91; text-align: center; }
+                @media print {
+                    body { margin: 10mm; }
+                    .no-print { display: none !important; }
+                }
+            `;
+
+            const documentContent = `
+                <!DOCTYPE html>
+                <html lang="ro">
+                <head>
+                    <meta charset="utf-8">
+                    <title>Raport ${employeeName}</title>
+                    <style>${printStyles}</style>
+                </head>
+                <body>
+                    <header>
+                        <h1>Fișă Pontaj - Raport Angajat</h1>
+                        <div class="meta">
+                            <div><strong>Angajat:</strong> ${employeeName}</div>
+                            <div><strong>Generat:</strong> ${generatedAt}</div>
+                        </div>
+                    </header>
+                    <section>
+                        <div class="summary-grid">
+                            <div class="summary-card">
+                                <div class="label">Total ore lucrate</div>
+                                <div class="value">${totals.totalHours.toFixed(2)} h</div>
+                            </div>
+                            <div class="summary-card">
+                                <div class="label">Total câștigat</div>
+                                <div class="value">${totals.totalPay.toFixed(2)} RON</div>
+                            </div>
+                            <div class="summary-card">
+                                <div class="label">Sume achitate</div>
+                                <div class="value">${totals.totalPaid.toFixed(2)} RON</div>
+                            </div>
+                            <div class="summary-card">
+                                <div class="label">Sold rămas</div>
+                                <div class="value">${totals.balance.toFixed(2)} RON</div>
+                            </div>
+                        </div>
+                    </section>
+                    <section>
+                        <h2>Istoric pontaje</h2>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Data intrare</th>
+                                    <th>Ora intrare</th>
+                                    <th>Data ieșire</th>
+                                    <th>Ora ieșire</th>
+                                    <th>Ore lucrate</th>
+                                    <th>Ore noapte</th>
+                                    <th>Plată</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${entryRows}
+                            </tbody>
+                        </table>
+                    </section>
+                    <section>
+                        <h2>Plăți și avansuri</h2>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Data</th>
+                                    <th>Tip</th>
+                                    <th>Sumă</th>
+                                    <th>Note</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${paymentRows}
+                            </tbody>
+                        </table>
+                    </section>
+                    <footer>
+                        Raport generat automat din aplicația Fișă Pontaj. Pentru conformitate, verificați notele de avertizare afișate în aplicație.
+                    </footer>
+                </body>
+                </html>
+            `;
+
+            printWindow.document.write(documentContent);
+            printWindow.document.close();
+            printWindow.focus();
+
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+            }, 300);
         }
 
         // Payment Tracking
